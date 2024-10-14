@@ -1,0 +1,21 @@
+{# templates/client/search_results.html.twig #}
+
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Résultats de la recherche</h1>
+
+    {% if clients is not empty %}
+        <ul>
+            {% for client in clients %}
+                <li>
+                    Téléphone: {{ client.telephone }}, Nom: {{ client.surname }}, Enum: {{ client.enum }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Aucun client trouvé.</p>
+    {% endif %}
+    
+    <a href="{{ path('app_home') }}">Retour à la page d'accueil</a>
+{% endblock %}

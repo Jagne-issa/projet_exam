@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Vous pouvez ajouter vos propres styles ici, par exemple : */
 body {
-    background-color: skyblue;
+    background-color: skyblue; /* Vous pouvez laisser cette ligne si vous le souhaitez */
 }
