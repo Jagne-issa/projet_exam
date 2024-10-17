@@ -1,257 +1,184 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion des Clients{% endblock %}
+{% block main %}
+<div class="container mx-auto">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="px-4 py-2 border-b">
+            <h2 class="text-xl font-semibold">Liste des clients</h2>
+        </div>
+        <div class="p-4">
+            <div class="flex justify-end mb-2">
+                <button aria-label="Créer un nouveau client" id="create-client-button"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    onclick="openModal()">Créer</button>
+            </div>
 
+            {# Affichage des messages flash pour les informations et les succès #}
+            {% for message in app.flashes('info') %}
+            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+                <p>{{ message }}</p>
+            </div>
+            {% endfor %}
 
-{% block stylesheets %}
-<style>
-    @media (max-width: 768px) {
-        .sidebar {
-            display: none;
-        }
+            {% for message in app.flashes('success') %}
+            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                <p>{{ message }}</p>
+            </div>
+            {% endfor %}
 
-        .mobile-sidebar {
-            display: flex;
-        }
-    }
+            {# Formulaire de recherche de client #}
+            {{ form_start(formSearch) }}
+            <div class="mb-2 text-red-500">
+                {{ form_errors(formSearch.telephone) }}
+            </div>
+            <div class="flex my-2">
+                {{ form_widget(formSearch.telephone, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2
+                w-1/3 mr-2', 'placeholder': 'Numéro de téléphone'} }) }}
+                {{ form_widget(formSearch.Search, { 'attr': {'class': 'bg-green-500 text-white px-4 py-2 rounded-md
+                hover:bg-green-600'} }) }}
+            </div>
+            {{ form_end(formSearch) }}
 
-    nav input[type="text"] {
-        width: auto;
-        flex-grow: 1;
-    }
+            {# Tableau des clients #}
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">#</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Nom</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Prénom</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Téléphone</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Adresse</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for client in clients %}
+                        <tr>
+                            <td class="px-4 py-2">
+                                <img src="{{ asset('images/avatar.jpg') }}" alt="avatar.jpg"
+                                    class="w-12 h-12 rounded-full">
+                            </td>
+                            <td class="px-4 py-2">{{ client.surname ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ client.prenom ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ client.telephone ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">{{ client.adresse ?? 'N/A' }}</td>
+                            <td class="px-4 py-2">
+                                <a href="{{ path('clients.edit', { id: client.id }) }}" class="btn btn-warning">
+                                    <i class="fas fa-edit"></i> <!-- Icône de modification -->
+                                </a>
 
-    .scrollable {
-        max-height: 50vh;
-        overflow-y: auto;
-    }
+                                <form action="{{ path('clients.delete', { id: client.id }) }}" method="post"
+                                    style="display: inline;">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ client.id) }}">
+                                    <button type="submit" class="btn btn-danger"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');">
+                                        <i class="fas fa-trash"></i> <!-- Icône de suppression -->
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center p-4">Aucun client trouvé.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-    .sidebar:hover {
-        width: 250px;
-    }
-
-    .sidebar a span {
-        display: none;
-    }
-
-    .sidebar:hover a span {
-        display: inline;
-    }
-</style>
-{%endblock %}
-
-{% block body %}
-<!DOCTYPE html>
-<html lang="fr">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Client</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-   
-</head>
-
-<body class="bg-gray-100 flex h-screen">
-    <div class="h-screen w-full bg-white relative flex overflow-hidden">
-        <aside id="sidebar" class="sidebar h-full w-16 flex flex-col space-y-10 items-center justify-center relative bg-gray-800 text-white md:flex hidden">
-            <ul class="space-y-4">
-                <li><a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded"><i class="fas fa-tachometer-alt"></i><span class="hidden"> Tableau de bord</span></a></li>
-                <li><a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded"><i class="fas fa-users"></i><span class="hidden"> Utilisateurs</span></a></li>
-                <li><a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded"><i class="fas fa-box-open"></i><span class="hidden"> Produits</span></a></li>
-                <li><a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded"><i class="fas fa-shopping-cart"></i><span class="hidden"> Commandes</span></a></li>
-            </ul>
-        </aside>
-
-        <div class="w-full h-full flex flex-col justify-between">
-            <header class="h-16 w-full flex items-center relative justify-start px-5 space-x-10 bg-gray-800">
-                <div class="flex flex-shrink-0 items-center space-x-4 text-white">
-                    <div class="h-10 w-10 rounded-full cursor-pointer bg-gray-200 border-2 border-blue-400"></div>
-                    <div class="flex flex-col items-start">
-                        <div class="text-md font-medium">Jagne Issa</div>
-                        <div class="text-sm font-regular">Student</div>
-                    </div>
+            {# Pagination #}
+            <div class="flex justify-between items-center mt-4">
+                <div>
+                    {% if currentPage > 1 %}
+                    <form action="{{ path('clients.index', { page: currentPage - 1 }) }}" method="GET">
+                        <button type="submit"
+                            class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
+                            Précédent
+                        </button>
+                    </form>
+                    {% endif %}
                 </div>
 
-                <div class="flex-grow mx-5">
-                    <input type="text" id="search" placeholder="Rechercher..." class="h-10 w-full px-3 rounded-md border border-gray-300" />
-                </div>
+                <span class="text-gray-700">
+                    Page {{ currentPage }} sur {{ totalPages }}
+                </span>
 
-                <button class="h-10 px-4 bg-red-600 text-white rounded-md">Déconnexion</button>
-            </header>
-
-            <main class="max-w-full h-full flex relative overflow-y-hidden">
-                <div class="h-full w-full m-4 flex flex-wrap items-start justify-between">
-                    <!-- Formulaire pour créer un client -->
-                    <div class="w-1/2 p-4 bg-gray-200 rounded-lg">
-                        <h2 class="text-lg font-bold mb-4">Créer un Client</h2>
-                        <form id="clientForm" class="space-y-4" onsubmit="addClient(event)">
-                            <div>
-                                <label for="clientName" class="block text-sm font-medium text-gray-700">Nom</label>
-                                <input type="text" id="clientName" name="clientName" required class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
-                            </div>
-                            <div>
-                                <label for="clientEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                                <input type="email" id="clientEmail" name="clientEmail" required class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
-                            </div>
-                            <div>
-                                <label for="clientPhone" class="block text-sm font-medium text-gray-700">Téléphone</label>
-                                <input type="tel" id="clientPhone" name="clientPhone" required class="mt-1 block w-full border border-gray-300 rounded-md p-2" />
-                            </div>
-                            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md">Créer Client</button>
+                <div>
+                    {% if currentPage < totalPages %} <form
+                        action="{{ path('clients.index', { page: currentPage + 1 }) }}" method="GET">
+                        <button type="submit"
+                            class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
+                            Suivant
+                        </button>
                         </form>
-                    </div>
-
-                    <!-- Formulaire de recherche -->
-                    <div class="w-full p-4 bg-gray-200 rounded-lg mb-4">
-                        <h2 class="text-lg font-bold mb-4">Rechercher un Client</h2>
-                        <form method="POST" action="{{ path('client_search') }}" class="space-y-4">
-                            <div>
-                                <label for="telephone" class="block text-sm font-medium text-gray-700">Téléphone:</label>
-                                <input type="text" name="telephone" id="telephone" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                            </div>
-                            <div>
-                                <label for="surname" class="block text-sm font-medium text-gray-700">Nom:</label>
-                                <input type="text" name="surname" id="surname" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                            </div>
-                            <div>
-                                <label for="enum" class="block text-sm font-medium text-gray-700">Enum:</label>
-                                <select name="enum" id="enum" required class="mt-1 block w-full border border-gray-300 rounded-md p-2">
-                                    <option value="option1">Option 1</option>
-                                    <option value="option2">Option 2</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="compte" class="block text-sm font-medium text-gray-700">Créer un compte:</label>
-                                <input type="checkbox" name="compte" id="compte" value="true" class="mt-1">
-                            </div>
-                            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md">Rechercher</button>
-                        </form>
-
-                        {% if app.request.method == 'POST' %}
-                            {% set telephone = app.request.post.get('telephone') %}
-                            {% set surname = app.request.post.get('surname') %}
-                            {% set enum = app.request.post.get('enum') %}
-                            {% set compte = app.request.post.get('compte') %}
-                            
-                            {% if telephone is not empty %}
-                                <div class="mt-4 p-2 bg-white border border-gray-300 rounded">
-                                    <h3 class="font-bold">Résultats de la recherche :</h3>
-                                    <p><strong>Téléphone:</strong> {{ telephone }}</p>
-                                    <p><strong>Nom:</strong> {{ surname }}</p>
-                                    <p><strong>Enum:</strong> {{ enum }}</p>
-                                    <p><strong>Créer un compte:</strong> {{ compte ? 'Oui' : 'Non' }}</p>
-                                </div>
-                            {% else %}
-                                <p class="mt-4 text-red-600">Aucun résultat trouvé.</p>
-                            {% endif %}
                         {% endif %}
-                    </div>
                 </div>
-            </main>
+            </div>
+
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.getElementById('client-form');
-            const clientList = document.querySelector('.client-list');
-            const messageContainer = document.getElementById('message-container');
-    
-            form.addEventListener('submit', function (event) {
-                event.preventDefault(); // Empêche le rechargement de la page
-    
-                const firstName = document.getElementById('firstName').value;
-                const phone = document.getElementById('phone').value;
-                const address = document.getElementById('address').value;
-    
-                // Valider les champs (vous pouvez ajouter plus de validation si nécessaire)
-                if (!firstName || !phone || !address) {
-                    displayMessage('Veuillez remplir tous les champs.', 'error');
-                    return;
-                }
-    
-                // Ajouter le nouveau client à la liste
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td class="px-6 py-4">${firstName}</td>
-                    <td class="px-6 py-4">${phone}</td>
-                    <td class="px-6 py-4">${address}</td>
-                    <td class="px-6 py-4">
-                        <button class="px-2 py-1 bg-yellow-500 text-white rounded-md shadow hover:bg-yellow-600" onclick="editClient(this)">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="px-2 py-1 bg-red-500 text-white rounded-md shadow hover:bg-red-600" onclick="deleteClient(this)">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                `;
-                clientList.appendChild(newRow);
-    
-                // Envoyer les données au serveur
-                sendDataToServer({ firstName, phone, address });
-    
-                // Réinitialiser le formulaire
-                form.reset();
-            });
-    
-            function editClient(button) {
-                const row = button.closest('tr');
-                const cells = row.querySelectorAll('td');
-                const firstName = cells[0].innerText;
-                const phone = cells[1].innerText;
-                const address = cells[2].innerText;
-    
-                // Remplir le formulaire avec les données du client
-                document.getElementById('firstName').value = firstName;
-                document.getElementById('phone').value = phone;
-                document.getElementById('address').value = address;
-    
-                // Supprimer la ligne pour éviter les doublons lors de l'ajout
-                row.remove();
-            }
-    
-            function deleteClient(button) {
-                const row = button.closest('tr');
-                row.remove(); // Supprime la ligne du client
-            }
-    
-            function sendDataToServer(data) {
-                // Remplacez '/path/to/your/api/clients' par l'URL de votre API
-                fetch('/path/to/your/api/clients', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
-                .then(data => {
-                    displayMessage('Client ajouté avec succès.', 'success');
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    displayMessage('Erreur lors de l\'ajout du client.', 'error');
-                });
-            }
-    
-            function displayMessage(message, type) {
-                // Créer un élément de message
-                const messageElement = document.createElement('div');
-                messageElement.innerText = message;
-                messageElement.className = `message ${type}`; // Ajoutez des styles CSS pour 'success' et 'error'
-                messageContainer.appendChild(messageElement);
-    
-                // Supprimer le message après quelques secondes
-                setTimeout(() => {
-                    messageElement.remove();
-                }, 3000);
-            }
-        });
-    </script>
-    
-</body>
+    {# Modal de création de client #}
+    <div id="createClientModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Créer un client</h2>
+                {{ form_start(formCreate) }}
 
-</html>
+                <div class="mb-4">
+                    {{ form_row(formCreate.surname, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2
+                    w-full', 'placeholder': 'Nom'} }) }}
+                </div>
+                <div class="mb-4">
+                    {{ form_row(formCreate.prenom, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2
+                    w-full', 'placeholder': 'Prénom'} }) }}
+                </div>
+                <div class="mb-4">
+                    {{ form_row(formCreate.telephone, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2
+                    w-full', 'placeholder': 'Numéro de téléphone', 'id': 'formCreate_telephone'} }) }}
+                    <div id="telephone-error-message" class="text-red-500 mt-2"></div>
+                </div>
+                <div class="mb-4">
+                    {{ form_row(formCreate.adresse, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2
+                    w-full', 'placeholder': 'Adresse'} }) }}
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Créer
+                        Client</button>
+                    <button type="button" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                        onclick="closeModal()">Annuler</button>
+                </div>
+                {{ form_end(formCreate) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openModal() {
+        document.getElementById('createClientModal').classList.remove('hidden');
+        document.querySelector('#formCreate_telephone').focus(); // Met le focus sur le premier champ
+    }
+
+    function closeModal() {
+        document.getElementById('createClientModal').classList.add('hidden');
+    }
+
+    // Validation du numéro de téléphone
+    document.querySelector('#formCreate_telephone').addEventListener('input', function (event) {
+        const telephoneInput = document.querySelector('#formCreate_telephone');
+        const errorMessage = document.querySelector('#telephone-error-message');
+
+        const isValid = /^(77|78|76)([0-9]{7})$/.test(telephoneInput.value);
+        if (!isValid) {
+            errorMessage.innerText = "Le numéro de téléphone doit être au format 77XXXXXX ou 78XXXXXX ou 76XXXXXX";
+            telephoneInput.classList.add('border-red-500');
+        } else {
+            errorMessage.innerText = "";
+            telephoneInput.classList.remove('border-red-500');
+        }
+    });
+</script>
 {% endblock %}

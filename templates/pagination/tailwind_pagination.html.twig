@@ -1,0 +1,47 @@
+{% if pagination.pageCount > 1 %}
+    <ul class="inline-flex items-center space-x-2">
+        {# Lien vers la page précédente #}
+        {% if pagination.previousPage is defined %}
+            <li>
+                <a href="{{ path(route, query|merge({(pageParameterName): pagination.previousPage})) }}"
+                   class="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition">
+                    Précédent
+                </a>
+            </li>
+        {% else %}
+            <li>
+                <span class="px-3 py-1 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed">Précédent</span>
+            </li>
+        {% endif %}
+
+        {# Liens vers les numéros de page #}
+        {% for page in pagination.pagesInRange %}
+            {% if page != pagination.currentPage %}
+                <li>
+                    <a href="{{ path(route, query|merge({(pageParameterName): page})) }}"
+                       class="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition">
+                        {{ page }}
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <span class="px-3 py-1 rounded-md bg-blue-500 text-white">{{ page }}</span>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {# Lien vers la page suivante #}
+        {% if pagination.nextPage is defined %}
+            <li>
+                <a href="{{ path(route, query|merge({(pageParameterName): pagination.nextPage})) }}"
+                   class="px-3 py-1 rounded-md bg-gray-200 text-gray-700 hover:bg-blue-500 hover:text-white transition">
+                    Suivant
+                </a>
+            </li>
+        {% else %}
+            <li>
+                <span class="px-3 py-1 rounded-md bg-gray-300 text-gray-500 cursor-not-allowed">Suivant</span>
+            </li>
+        {% endif %}
+    </ul>
+{% endif %}

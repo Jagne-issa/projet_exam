@@ -1,0 +1,23 @@
+{# templates/client/edit.html.twig #}
+
+<div class="bg-white rounded-lg p-4 shadow-md">
+    <h2 class="text-xl font-semibold mb-4">Modifier le client</h2>
+    {{ form_start(formEdit) }}
+    <div class="mb-4">
+        {{ form_row(formEdit.surname, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Nom'} }) }}
+    </div>
+    <div class="mb-4">
+        {{ form_row(formEdit.prenom, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Prénom'} }) }}
+    </div>
+    <div class="mb-4">
+        {{ form_row(formEdit.telephone, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Téléphone'} }) }}
+    </div>
+    <div class="mb-4">
+        {{ form_row(formEdit.adresse, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Adresse'} }) }}
+    </div>
+    <div class="mb-4">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="submit" class="btn btn-primary">Annuler</button>
+    </div>
+    {{ form_end(formEdit) }}
+</div>

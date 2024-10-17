@@ -1,19 +1,151 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8">
-        <title>{% block title %}Welcome!{% endblock %}</title>
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
-        {% block stylesheets %}
-            {{ encore_entry_link_tags('app') }}
-        {% endblock %}
 
-        {% block javascripts %}
-            {{ encore_entry_script_tags('app') }}
-            {% block importmap %}{{ importmap('app') }}{% endblock %}
+<head>
+    <meta charset="UTF-8">
+    <title>
+        {% block title %}Welcome!
         {% endblock %}
-    </head>
-    <body>
-        {% block body %}{% endblock %}
-    </body>
+    </title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+
+    {% block stylesheets %}
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="{{asset('styles/app.css')}}" rel="stylesheet">
+    <style>
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .mobile-sidebar {
+                display: flex;
+            }
+        }
+
+        nav input[type="text"] {
+            width: auto;
+            flex-grow: 1;
+        }
+
+        /* Style pour le défilement */
+        .scrollable {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .sidebar:hover {
+            width: 250px;
+        }
+
+        .sidebar a span {
+            display: none;
+        }
+
+        .sidebar:hover a span {
+            display: inline;
+        }
+        
+    </style>
+    {% endblock %}
+</head>
+
+<body class="bg-gray-100 flex h-screen">
+
+    {% block body %}
+    <!-- <div class="container mx-auto"> -->
+
+        {% block header %}
+        <div class="h-screen w-full bg-white relative flex overflow-hidden">
+
+            <aside id="sidebar"
+                class="sidebar h-full w-16 flex flex-col space-y-10 items-center justify-center relative bg-gray-800 text-white md:flex hidden">
+                <ul class="space-y-4">
+                    <li>
+                        <a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-tachometer-alt"></i><span class="hidden"> Tableau de bord</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-users"></i><span class="hidden"> Utilisateurs</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-box-open"></i><span class="hidden"> Produits</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-shopping-cart"></i><span class="hidden"> Commandes</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('article_new') }}" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-th-list"></i><span class="hidden"> Articles</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ path('app_home') }}" class="flex items-center hover:bg-blue-600 px-4 py-2 rounded">
+                            <i class="fas fa-address-book"></i><span class="hidden"> Clients</span>
+                        </a>
+                    </li>
+                    
+                </ul>
+            </aside>
+
+
+            <div class="w-full h-full flex flex-col justify-between">
+                <header class="h-16 w-full flex items-center relative justify-start px-5 space-x-10 bg-gray-800">
+                    <div class="flex flex-shrink-0 items-center space-x-4 text-white">
+                        <div class="h-10 w-10 rounded-full cursor-pointer bg-gray-200 border-2 border-blue-400"></div>
+                        <div class="flex flex-col items-start">
+                            <div class="text-md font-medium">Jagne Issa</div>
+                            <div class="text-sm font-regular">Student</div>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow mx-5">
+                        <input type="text" id="search" placeholder="Rechercher..."
+                            class="h-10 w-full px-3 rounded-md border border-gray-300" oninput="searchClient()" />
+                    </div>
+
+                    <button class="h-10 px-4 bg-red-600 text-white rounded-md">Déconnexion</button>
+                </header>
+                {% endblock %}
+
+                <main>
+                    {% block main %}{% endblock %}
+                </main>
+
+                {% block footer %}
+                <footer></footer>
+                {% endblock %}
+            </div>
+            {% endblock %}
+
+            {% block javascripts %}
+            <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+                integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+                crossorigin="anonymous"></script>
+            <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"
+                integrity="sha384-0pUGZvbkm6XF6gxjEnlmuGrJXVbNuzT9qBBavbLwCsOGabYfZo0T0to5eqruptLy"
+                crossorigin="anonymous"></script> -->
+
+                <script>
+                    document.getElementById('create-client-button').addEventListener('click', function() {
+                        document.getElementById('createClientModal').style.display = 'block';
+                    });
+                
+                    function closeModal() {
+                        document.getElementById('createClientModal').style.display = 'none';
+                    }
+                </script>
+                
+            {% endblock %}
+</body>
+
 </html>

@@ -3,7 +3,6 @@
 use App\Kernel;
 
 require_once dirname(__DIR__).'/vendor/autoload_runtime.php';
-require_once '../src/views/ClientSearchForm.php';
 
 
 return function (array $context) {

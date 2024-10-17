@@ -1,13 +1,15 @@
 <?php
 
-// src/Repository/ClientRepository.php
-
 namespace App\Repository;
 
 use App\Entity\Client;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
+/**
+ * @extends ServiceEntityRepository<Client>
+ */
 class ClientRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -15,26 +17,27 @@ class ClientRepository extends ServiceEntityRepository
         parent::__construct($registry, Client::class);
     }
 
-public function searchByQuery(ClientSearch $clientSearch)
-{
-    $qb = $this->createQueryBuilder('c');
+    //    /**
+    //     * @return Client[] Returns an array of Client objects
+    //     */
+    public function paginateClients(int $page, int $limit): Paginator
+    {
 
-    if ($clientSearch->getTelephone()) {
-        $qb->andWhere('c.telephone = :telephone')
-           ->setParameter('telephone', $clientSearch->getTelephone());
-    }
-    
-    if ($clientSearch->getSurname()) {
-        $qb->andWhere('c.surname LIKE :surname')
-           ->setParameter('surname', '%' . $clientSearch->getSurname() . '%');
-    }
-
-    if ($clientSearch->getEnum()) {
-        $qb->andWhere('c.enum = :enum')
-           ->setParameter('enum', $clientSearch->getEnum());
+        $query = $this->createQueryBuilder('c')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit)
+            ->orderBy('c.id', 'ASC')
+            ->getQuery();
+        return new Paginator($query);
     }
 
-    return $qb->getQuery()->getResult();
-}
-
+    //    public function findOneBySomeField($value): ?Client
+    //    {
+    //        return $this->createQueryBuilder('c')
+    //            ->andWhere('c.exampleField = :val')
+    //            ->setParameter('val', $value)
+    //            ->getQuery()
+    //            ->getOneOrNullResult()
+    //        ;
+    //    }
 }
