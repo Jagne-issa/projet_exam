@@ -49,6 +49,11 @@ class Client
     #[ORM\OneToMany(targetEntity: Dette::class, mappedBy: 'client', orphanRemoval: true, cascade: ['persist'])]
     private Collection $dettes;
 
+    public function __toString(): string
+    {
+        return $this->prenom . ' ' . $this->surname; // Ou utilisez un autre champ selon vos besoins
+    }
+
     public function __construct()
     {
         $this->createAt = new \DateTimeImmutable();

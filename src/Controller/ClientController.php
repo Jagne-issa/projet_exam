@@ -22,17 +22,19 @@ class ClientController extends AbstractController
     }
 
     #[Route('/clients', name: 'app_home')]
-    public function index(Request $request, PaginatorInterface $paginator): Response
+    #[Route('/clients', name: 'app_home')]
+    #[Route('/clients/page/{page}', name: 'app_home_paginated', requirements: ['page' => '\d+'])]
+    public function index(Request $request, PaginatorInterface $paginator, int $page = 1): Response
     {
         // Formulaire de recherche
         $formSearch = $this->createForm(SearchClientType::class);
         $formSearch->handleRequest($request);
-
+    
         $queryBuilder = $this->entityManager->getRepository(Client::class)->createQueryBuilder('c');
-
+    
         if ($formSearch->isSubmitted() && $formSearch->isValid()) {
             $data = $formSearch->getData();
-            if ($data['telephone']) { // Correction du champ de recherche
+            if ($data['telephone']) {
                 $queryBuilder->andWhere('c.telephone LIKE :telephone')
                              ->setParameter('telephone', '%' . $data['telephone'] . '%');
             }
@@ -41,44 +43,45 @@ class ClientController extends AbstractController
                              ->setParameter('surname', '%' . $data['surname'] . '%');
             }
         }
-
+    
         // Pagination
         $clients = $paginator->paginate(
             $queryBuilder,
-            $request->query->getInt('page', 1),
+            $page, // Utilisez le paramètre de page ici
             10 // nombre d'éléments par page
         );
-
+    
         // Récupération des variables de pagination
-        $currentPage = $clients->getCurrentPageNumber(); // Page actuelle
-        $itemsPerPage = $clients->getItemNumberPerPage(); // Nombre d'éléments par page
-        $totalClients = $clients->getTotalItemCount(); // Total des clients
-        $totalPages = $totalClients > 0 ? ceil($totalClients / $itemsPerPage) : 1; // Nombre total de pages
-
+        $currentPage = $clients->getCurrentPageNumber();
+        $itemsPerPage = $clients->getItemNumberPerPage();
+        $totalClients = $clients->getTotalItemCount();
+        $totalPages = $totalClients > 0 ? ceil($totalClients / $itemsPerPage) : 1;
+    
         // Formulaire de création de client
         $client = new Client();
         $formCreate = $this->createForm(ClientType::class, $client);
         $formCreate->handleRequest($request);
-
+    
         if ($formCreate->isSubmitted() && $formCreate->isValid()) {
             $this->entityManager->persist($client);
             $this->entityManager->flush();
-
+    
             $this->addFlash('info', 'Client créé avec succès.');
             return $this->redirectToRoute('app_home');
         }
-
+    
         // Rendu du template avec les variables
         return $this->render('client/index.html.twig', [
             'clients' => $clients,
             'formSearch' => $formSearch->createView(),
             'formCreate' => $formCreate->createView(),
-            'currentPage' => $currentPage ?? 1,
-            'itemsPerPage' => $itemsPerPage ?? 10,
-            'totalClients' => $totalClients ?? 0,
+            'currentPage' => $currentPage,
+            'itemsPerPage' => $itemsPerPage,
+            'totalClients' => $totalClients,
             'totalPages' => $totalPages,
         ]);
     }
+    
 
     #[Route('/client/edit/{id}', name: 'clients.edit')]
     public function edit(Client $client, Request $request): Response
@@ -111,4 +114,16 @@ class ClientController extends AbstractController
 
         return $this->redirectToRoute('app_home');
     }
+
+    
+    public function showDebts(Client $client)
+    {
+        $debts = $this->debtRepository->findBy(['client' => $client]);
+        return $this->render('client/debts.html.twig', [
+            'client' => $client,
+            'debts' => $debts,
+        ]);
+    }
+
+
 }

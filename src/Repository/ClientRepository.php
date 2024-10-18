@@ -20,16 +20,37 @@ class ClientRepository extends ServiceEntityRepository
     //    /**
     //     * @return Client[] Returns an array of Client objects
     //     */
-    public function paginateClients(int $page, int $limit): Paginator
-    {
+    // public function paginateClients(int $page, int $limit): Paginator
+    // {
 
-        $query = $this->createQueryBuilder('c')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit)
-            ->orderBy('c.id', 'ASC')
-            ->getQuery();
-        return new Paginator($query);
+    //     $query = $this->createQueryBuilder('c')
+    //         ->setFirstResult(($page - 1) * $limit)
+    //         ->setMaxResults($limit)
+    //         ->orderBy('c.id', 'ASC')
+    //         ->getQuery();
+    //     return new Paginator($query);
+    // }
+
+
+    public function paginateClients(int $page, int $limit, string $telephone = '*'): array
+    {
+        $qb = $this->createQueryBuilder('c');
+    
+        if ($telephone !== '*') {
+            $qb->andWhere('c.telephone LIKE :telephone')
+                ->setParameter('telephone', '%' . $telephone . '%');
+        }
+    
+        $query = $qb->getQuery();
+        $paginator = new Paginator($query);
+    
+        // Set current page and limit
+        $paginator->setPage($page);
+        $paginator->setLimit($limit);
+    
+        return $paginator->getResults();
     }
+
 
     //    public function findOneBySomeField($value): ?Client
     //    {

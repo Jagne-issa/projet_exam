@@ -1,6 +1,12 @@
 <?php
 
 namespace App\Entity;
+// Changez cette ligne
+use App\Entity\Debt; // Modifiez ou commentez cette ligne
+
+// En dessous, assurez-vous d'utiliser la classe 'Dette'
+use App\Entity\Dette; // Ajoutez cette ligne si ce n'est pas déjà fait
+
 
 use App\Repository\DetteRepository;
 use Doctrine\ORM\Mapping as ORM;

@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block main %}
+<div class="max-w-lg mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
+    <h1 class="text-2xl font-bold mb-4">Créer une nouvelle dette</h1>
+
+    {{ form_start(form, {'attr': {'class': 'space-y-4'}}) }}
+    
+    <div>
+        {{ form_label(form.montant, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+        {{ form_widget(form.montant, {'attr': {'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
+        {{ form_errors(form.montant) }}
+    </div>
+
+    <div>
+        {{ form_label(form.montantVerser, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+        {{ form_widget(form.montantVerser, {'attr': {'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
+        {{ form_errors(form.montantVerser) }}
+    </div>
+
+    <div>
+        {{ form_label(form.client, null, {'label_attr': {'class': 'block text-sm font-medium text-gray-700'}}) }}
+        {{ form_widget(form.client, {'attr': {'class': 'mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500'}}) }}
+        {{ form_errors(form.client) }}
+    </div>
+
+    <button type="submit" class="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+        Créer
+    </button>
+    
+    {{ form_end(form) }}
+
+    <a href="{{ path('debt_index') }}" class="block mt-4 text-blue-500 hover:underline">
+        Retour à la liste des dettes
+    </a>
+</div>
+{% endblock %}
