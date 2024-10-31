@@ -87,44 +87,42 @@
                 </table>
             </div>
 
-            {# Pagination #}
+            <!-- {# Pagination #}
+            <div class="flex justify-between items-center mt-4"> -->
+            {% if pageCount is defined and pageCount > 1 %}
             <div class="flex justify-between items-center mt-4">
-
-                <div>
-                    {% if currentPage > 1 %}
-                        <a href="{{ path('app_home', { page: currentPage - 1 }) }}">Précédent</a>
-                    {% endif %}
-                    <span>Page {{ currentPage }}</span>
-                    <a href="{{ path('app_home', { page: currentPage + 1 }) }}">Suivant</a>
-                </div>
-
-
-                <!-- <div>
-                    {% if currentPage > 1 %}
-                    <form action="{{ path('clients.index', { page: currentPage - 1 }) }}" method="GET">
-                        <button type="submit"
-                            class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
-                            Précédent
-                        </button>
-                    </form>
-                    {% endif %}
-                </div>
-
-                <span class="text-gray-700">
-                    Page {{ currentPage }} sur {{ totalPages }}
+                <span class="text-sm text-gray-700">
+                    Affichage de {{ start }} à {{ end }} de {{ total }} clients
                 </span>
-
-                <div>
-                    {% if currentPage < totalPages %} <form
-                        action="{{ path('clients.index', { page: currentPage + 1 }) }}" method="GET">
-                        <button type="submit"
-                            class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
-                            Suivant
-                        </button>
-                        </form>
+                <ul class="pagination flex space-x-3">
+                    {% if current > 1 %}
+                    <li>
+                        <a href="{{ path(route, query|merge({(pageParameterName): current - 1})) }}"
+                            class="bg-blue-600 text-white hover:bg-blue-700 p-2 rounded-md">Précédent</a>
+                    </li>
+                    {% endif %}
+                    {% for page in pagesInRange %}
+                    <li>
+                        {% if page == current %}
+                        <span class="bg-blue-600 text-white p-2 rounded-md">{{ page }}</span>
+                        {% else %}
+                        <a href="{{ path(route, query|merge({(pageParameterName): page})) }}"
+                            class="bg-gray-200 text-gray-700 hover:bg-gray-300 p-2 rounded-md">
+                            {{ page }}
+                        </a>
                         {% endif %}
-                </div> -->
+                    </li>
+                    {% endfor %}
+                    {% if current < last %} <li>
+                        <a href="{{ path(route, query|merge({(pageParameterName): current + 1})) }}"
+                            class="bg-blue-600 text-white hover:bg-blue-700 p-2 rounded-md">Suivant</a>
+                        </li>
+                        {% endif %}
+                </ul>
             </div>
+            {% endif %}
+            <!-- </div> -->
+
 
         </div>
     </div>
@@ -166,7 +164,11 @@
     </div>
 </div>
 
+
+
 <script>
+
+
     function openModal() {
         document.getElementById('createClientModal').classList.remove('hidden');
         document.querySelector('#formCreate_telephone').focus(); // Met le focus sur le premier champ

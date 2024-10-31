@@ -5,12 +5,12 @@
 namespace App\Form;
 
 use App\Entity\Dette;
-use App\Entity\Client; // Assurez-vous d'importer la classe Client
-use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\NumberType;
-use Symfony\Component\Form\FormBuilderInterface;
+use App\Entity\Client;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 
 class DebtType extends AbstractType
 {
@@ -22,7 +22,7 @@ class DebtType extends AbstractType
             ->add('client', EntityType::class, [
                 'class' => Client::class,
                 'choice_label' => function (Client $client) {
-                    return (string) $client; // Utilisation de la méthode __toString()
+                    return (string) $client; // Utilisation de __toString()
                 },
             ]);
     }

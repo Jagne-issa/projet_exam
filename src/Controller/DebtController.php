@@ -4,10 +4,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Dette; // Utilisez 'Dette' ici
-use App\Form\DebtType; // Assurez-vous que le nom du formulaire est correct
+use App\Entity\Client;
+use App\Entity\Dette;
+use App\Form\DebtType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -20,12 +22,14 @@ class DebtController extends AbstractController
     public function __construct(EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
+        // $this->denyAccessUnlessGranted('EDIT', $subject);
+
     }
 
     #[Route('/debt/new', name: 'debt_new')]
     public function new(Request $request): Response
     {
-        $debt = new Dette(); // Utilisez 'Dette' ici
+        $debt = new Dette();
         $form = $this->createForm(DebtType::class, $debt);
         $form->handleRequest($request);
 
@@ -43,41 +47,30 @@ class DebtController extends AbstractController
     }
 
     #[Route('/debt', name: 'debt_index')]
-public function index(Request $request): Response
-{
-    $statusFilter = $request->query->get('status', []);
-    
-    $queryBuilder = $this->entityManager->getRepository(Dette::class)->createQueryBuilder('d');
-
-    if (in_array('active', $statusFilter)) {
-        $queryBuilder->andWhere('d.status = :active')
-                     ->setParameter('active', 'active');
-    }
-    
-    if (in_array('paid', $statusFilter)) {
-        $queryBuilder->orWhere('d.status = :paid')
-                     ->setParameter('paid', 'paid');
-    }
-
-    $debts = $queryBuilder->getQuery()->getResult();
-
-    return $this->render('debt/index.html.twig', [
-        'debts' => $debts,
-    ]);
-}
-
-    
-
-    public function buildForm(FormBuilderInterface $builder, array $options): void
+    public function index(Request $request): Response
     {
-        $builder
-            ->add('montant')
-            ->add('montantVerser')
-            ->add('client', EntityType::class, [
-                'class' => Client::class,
-                'choice_label' => function (Client $client) {
-                    return (string) $client; // Utilisation de la méthode __toString()
-                },
-            ]);
+        $statusFilter = $request->query->all('status', []);
+
+        if (!is_array($statusFilter)) {
+            $statusFilter = [];
+        }
+    
+        $queryBuilder = $this->entityManager->getRepository(Dette::class)->createQueryBuilder('d');
+    
+        if (in_array('active', $statusFilter)) {
+            $queryBuilder->andWhere('d.status = :active')
+                         ->setParameter('active', 'active');
+        }
+        
+        if (in_array('paid', $statusFilter)) {
+            $queryBuilder->orWhere('d.status = :paid')
+                         ->setParameter('paid', 'paid');
+        }
+    
+        $debts = $queryBuilder->getQuery()->getResult();
+    
+        return $this->render('debt/index.html.twig', [
+            'debts' => $debts,
+        ]);
     }
 }

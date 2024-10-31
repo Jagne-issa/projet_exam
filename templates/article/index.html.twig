@@ -1,96 +1,143 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Gestion des articles{% endblock %}
-
 {% block main %}
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex">
-            <div class="w-3/4 ml-4">
-                <header class="bg-gray-800 text-white p-4 mb-6 rounded">
-                    <div class="flex justify-between items-center">
-                        <div class="text-lg font-bold flex items-center space-x-2">
-                            <i class="fas fa-shopping-basket"></i>
-                            <span>shop42</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Gestion des articles sécurisée</span>
-                        </div>
-                    </div>
-                </header>
+<div class="container mx-auto">
+    <div class="bg-white shadow-md rounded-lg">
+        <div class="px-4 py-2 border-b">
+            <h2 class="text-xl font-semibold">Liste des articles</h2>
+        </div>
+        <div class="p-4">
+            <div class="flex justify-end mb-2">
+                <button aria-label="Créer un nouvel article" id="create-article-button"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+                    onclick="openArticleModal()">Créer</button>
+            </div>
 
-                <!-- Formulaire pour ajouter un nouvel article -->
-                <section class="mb-8">
-                    <div class="bg-white shadow rounded p-6">
-                        <h2 class="text-xl font-semibold mb-4">Ajouter un nouvel article</h2>
-                        {{ form_start(form) }}
-                            <div class="mb-4">
-                                {{ form_label(form.title) }}
-                                {{ form_widget(form.title) }}
-                            </div>
+            {# Affichage des messages flash pour les informations et les succès #}
+            {% for message in app.flashes('info') %}
+                <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
 
-                            <div class="mb-4">
-                                {{ form_label(form.description) }}
-                                {{ form_widget(form.description) }}
-                            </div>
+            {% for message in app.flashes('success') %}
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+                    <p>{{ message }}</p>
+                </div>
+            {% endfor %}
 
-                            <div class="mb-4">
-                                {{ form_label(form.quantity) }}
-                                {{ form_widget(form.quantity) }}
-                            </div>
+            {# Tableau des articles #}
+            <div class="overflow-x-auto mt-3">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">#</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Nom</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Description</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Prix</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Quantite Stocke</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for article in articles %}
+                            <tr>
+                                <td class="px-4 py-2">{{ loop.index }}</td>
+                                <td class="px-4 py-2">{{ article.nom ?? 'N/A' }}</td>
+                                <td class="px-4 py-2">{{ article.description ?? 'N/A' }}</td>
+                                <td class="px-4 py-2">{{ article.prix ?? 'N/A' }}</td>
+                                <td class="px-4 py-2">{{ article.qteStock ?? 'N/A' }}</td>
+                                <td class="px-4 py-2">
+                                    <a href="{{ path('article_edit', { id: article.id }) }}" class="btn btn-warning">
+                                        <i class="fas fa-edit"></i> <!-- Icône de modification -->
+                                    </a>
 
-                            <div class="mb-4">
-                                {{ form_label(form.price) }}
-                                {{ form_widget(form.price) }}
-                            </div>
-
-                            <div class="mb-4">
-                                {{ form_label(form.images) }}
-                                {{ form_widget(form.images) }}
-                            </div>
-
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded">
-                                Enregistrer l'article
-                            </button>
-                        {{ form_end(form) }}
-                    </div>
-                </section>
-
-                <!-- Liste des articles -->
-                <section>
-                    <h2 class="text-xl font-semibold mb-4">Liste des articles</h2>
-                    <table class="min-w-full bg-white border rounded-lg shadow-sm">
-                        <thead>
-                            <tr class="bg-gray-200 text-gray-700">
-                                <th class="py-2 px-4 border-b">Titre</th>
-                                <th class="py-2 px-4 border-b">Description</th>
-                                <th class="py-2 px-4 border-b">Prix</th>
-                                <th class="py-2 px-4 border-b">Actions</th>
+                                    <form action="{{ path('article_delete', { id: article.id }) }}" method="post"
+                                        style="display: inline;">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ article.id) }}">
+                                        <button type="submit" class="btn btn-danger"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
+                                            <i class="fas fa-trash"></i> <!-- Icône de suppression -->
+                                        </button>
+                                    </form>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for article in articles %}
-                                <tr class="border-b">
-                                    <td class="py-2 px-4">{{ article.nom }}</td>
-                                    <td class="py-2 px-4">{{ article.description }}</td>
-                                    <td class="py-2 px-4">{{ article.price }}</td>
-                                    <td class="py-2 px-4 flex space-x-2">
-                                        <a href="{{ path('article_edit', {id: article.id}) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-1 px-2 rounded text-sm">Modifier</a>
-                                        <a href="{{ path('article_delete', {id: article.id}) }}" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-1 px-2 rounded text-sm"
-                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?');">
-                                           Supprimer
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="4" class="py-4 text-center">Aucun article trouvé.</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </section>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center p-4">Aucun article trouvé.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Pagination #}
+            <div class="flex justify-between items-center mt-4">
+                <div>
+                    {% if currentPage > 1 %}
+                        <a href="{{ path('article_list', { page: currentPage - 1 }) }}" class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
+                            Précédent
+                        </a>
+                    {% endif %}
+                    {# Afficher les numéros de page #}
+                    {% for i in 1..totalPages %}
+                        <a href="{{ path('article_list', { page: i }) }}"
+                           class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded {{ i == currentPage ? 'bg-blue-700' : '' }}">
+                            {{ i }}
+                        </a>
+                    {% endfor %}
+                    {% if currentPage < totalPages %}
+                        <a href="{{ path('article_list', { page: currentPage + 1 }) }}" class="bg-blue-500 text-white hover:bg-blue-700 font-bold py-2 px-4 rounded">
+                            Suivant
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            
+        </div>
+    </div>
+
+    {# Modal de création d'article #}
+    <div id="createArticleModal" class="fixed z-10 inset-0 overflow-y-auto hidden">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="bg-white rounded-lg p-4 shadow-md">
+                <h2 class="text-xl font-semibold mb-4">Créer un article</h2>
+                {{ form_start(formArticle) }}
+
+                <div class="mb-4">
+                    {{ form_row(formArticle.nom, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Nom'} }) }}
+                </div>
+                <div class="mb-4">
+                    {{ form_row(formArticle.description, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Description'} }) }}
+                </div>
+                <div class="mb-4">
+                    {{ form_row(formArticle.prix, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Prix'} }) }}
+                </div>
+
+                <div class="mb-4">
+                    {{ form_row(formArticle.qteStock, { 'attr': {'class': 'border border-gray-300 rounded-md px-3 py-2 w-full', 'placeholder': 'Quantite Stocke'} }) }}
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Créer
+                        Article</button>
+                    <button type="button" class="ml-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                        onclick="closeArticleModal()">Annuler</button>
+                </div>
+                {{ form_end(formArticle) }}
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    function openArticleModal() {
+        document.getElementById('createArticleModal').classList.remove('hidden');
+    }
+
+    function closeArticleModal() {
+        document.getElementById('createArticleModal').classList.add('hidden');
+    }
+</script>
 {% endblock %}

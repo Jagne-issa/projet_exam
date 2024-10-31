@@ -113,7 +113,10 @@
                             class="h-10 w-full px-3 rounded-md border border-gray-300" oninput="searchClient()" />
                     </div>
 
-                    <button class="h-10 px-4 bg-red-600 text-white rounded-md">Déconnexion</button>
+                    <form action="{{ path('app_logout') }}" method="post">
+                        <button type="submit" class="h-10 px-4 bg-red-600 text-white rounded-md">Déconnexion</button>
+                    </form>
+                    
                 </header>
                 {% endblock %}
 

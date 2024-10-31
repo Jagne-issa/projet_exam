@@ -1,17 +1,14 @@
 <?php
 
+// src/Entity/Dette.php
+
 namespace App\Entity;
-// Changez cette ligne
-use App\Entity\Debt; // Modifiez ou commentez cette ligne
-
-// En dessous, assurez-vous d'utiliser la classe 'Dette'
-use App\Entity\Dette; // Ajoutez cette ligne si ce n'est pas déjà fait
-
 
 use App\Repository\DetteRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DetteRepository::class)]
+#[ORM\Table(name: 'dette')]
 class Dette
 {
     #[ORM\Id]
@@ -19,16 +16,19 @@ class Dette
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: "float")]
     private ?float $montant = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: "float")]
     private ?float $montantVerser = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'string', length: 50)]
+    private ?string $status = null;
+
+    #[ORM\Column(type: "datetime_immutable", name: "create_at")]
     private ?\DateTimeImmutable $createAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: "datetime_immutable", name: "update_at")]
     private ?\DateTimeImmutable $updateAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'dettes')]
@@ -54,7 +54,6 @@ class Dette
     public function setMontant(float $montant): static
     {
         $this->montant = $montant;
-
         return $this;
     }
 
@@ -66,7 +65,6 @@ class Dette
     public function setMontantVerser(float $montantVerser): static
     {
         $this->montantVerser = $montantVerser;
-
         return $this;
     }
 
@@ -78,7 +76,6 @@ class Dette
     public function setCreateAt(\DateTimeImmutable $createAt): static
     {
         $this->createAt = $createAt;
-
         return $this;
     }
 
@@ -90,7 +87,6 @@ class Dette
     public function setUpdateAt(\DateTimeImmutable $updateAt): static
     {
         $this->updateAt = $updateAt;
-
         return $this;
     }
 
@@ -102,7 +98,17 @@ class Dette
     public function setClient(?Client $client): static
     {
         $this->client = $client;
+        return $this;
+    }
 
+    public function getStatus(): ?string // Ajoutez le getter pour status
+    {
+        return $this->status;
+    }
+
+    public function setStatus(?string $status): static // Ajoutez le setter pour status
+    {
+        $this->status = $status;
         return $this;
     }
 }

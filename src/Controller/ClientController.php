@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
-use App\Form\ClientType;
-use App\Form\SearchClientType;
 use App\Entity\Client;
+use App\Form\ClientType;
+use App\Repository\ClientRepository; 
+use App\Form\SearchClientType;
+use App\Repository\DetteRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Knp\Component\Pager\PaginatorInterface; // Assurez-vous d'importer le bon namespace pour la pagination
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,88 +17,74 @@ use Symfony\Component\Routing\Annotation\Route;
 class ClientController extends AbstractController
 {
     private EntityManagerInterface $entityManager;
+    private DetteRepository $detteRepository;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, DetteRepository $detteRepository)
     {
         $this->entityManager = $entityManager;
+        $this->detteRepository = $detteRepository;
+        // $this->denyAccessUnlessGranted('EDIT', $subject);
+
     }
 
-    #[Route('/clients', name: 'app_home')]
-    #[Route('/clients', name: 'app_home')]
-    #[Route('/clients/page/{page}', name: 'app_home_paginated', requirements: ['page' => '\d+'])]
-    public function index(Request $request, PaginatorInterface $paginator, int $page = 1): Response
+    #[Route('/clients', name: 'app_home', requirements: ['page' => '\d+'])]
+    public function index(Request $request, ClientRepository $clientRepository, PaginatorInterface $paginator): Response
     {
         // Formulaire de recherche
         $formSearch = $this->createForm(SearchClientType::class);
         $formSearch->handleRequest($request);
-    
-        $queryBuilder = $this->entityManager->getRepository(Client::class)->createQueryBuilder('c');
-    
-        if ($formSearch->isSubmitted() && $formSearch->isValid()) {
-            $data = $formSearch->getData();
-            if ($data['telephone']) {
-                $queryBuilder->andWhere('c.telephone LIKE :telephone')
-                             ->setParameter('telephone', '%' . $data['telephone'] . '%');
-            }
-            if ($data['surname']) {
-                $queryBuilder->andWhere('c.surname LIKE :surname')
-                             ->setParameter('surname', '%' . $data['surname'] . '%');
-            }
-        }
-    
+
+        $criteria = $formSearch->isSubmitted() && $formSearch->isValid()
+            ? $formSearch->getData()
+            : [];
+
+        // Récupérer la requête pour les clients avec critères de recherche
+        $query = $clientRepository->findAllQuery($criteria);
+
         // Pagination
-        $clients = $paginator->paginate(
-            $queryBuilder,
-            $page, // Utilisez le paramètre de page ici
-            10 // nombre d'éléments par page
+        $pagination = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1), // Numéro de page par défaut 1
+            10 // Nombre d'éléments par page
         );
-    
-        // Récupération des variables de pagination
-        $currentPage = $clients->getCurrentPageNumber();
-        $itemsPerPage = $clients->getItemNumberPerPage();
-        $totalClients = $clients->getTotalItemCount();
-        $totalPages = $totalClients > 0 ? ceil($totalClients / $itemsPerPage) : 1;
-    
-        // Formulaire de création de client
+
+        // Formulaire pour créer un nouveau client
         $client = new Client();
         $formCreate = $this->createForm(ClientType::class, $client);
         $formCreate->handleRequest($request);
-    
+
         if ($formCreate->isSubmitted() && $formCreate->isValid()) {
             $this->entityManager->persist($client);
             $this->entityManager->flush();
-    
-            $this->addFlash('info', 'Client créé avec succès.');
-            return $this->redirectToRoute('app_home');
+            $this->addFlash('success', 'Client créé avec succès!');
+
+            return $this->redirectToRoute('app_home'); // Rediriger vers la liste des clients
         }
-    
-        // Rendu du template avec les variables
+
         return $this->render('client/index.html.twig', [
-            'clients' => $clients,
+            'clients' => $pagination, // Clients paginés
             'formSearch' => $formSearch->createView(),
             'formCreate' => $formCreate->createView(),
-            'currentPage' => $currentPage,
-            'itemsPerPage' => $itemsPerPage,
-            'totalClients' => $totalClients,
-            'totalPages' => $totalPages,
         ]);
     }
-    
 
-    #[Route('/client/edit/{id}', name: 'clients.edit')]
-    public function edit(Client $client, Request $request): Response
+    #[Route('/client/edit/{id}', name: 'clients.edit', methods: ['GET', 'POST'])]
+    public function edit(Request $request, Client $client): Response
     {
-        $formEdit = $this->createForm(ClientType::class, $client);
-        $formEdit->handleRequest($request);
+        // Créer le formulaire pour éditer le client
+        $form = $this->createForm(ClientType::class, $client);
+        $form->handleRequest($request);
 
-        if ($formEdit->isSubmitted() && $formEdit->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Enregistrer les modifications
             $this->entityManager->flush();
-            $this->addFlash('info', 'Client modifié avec succès.');
-            return $this->redirectToRoute('app_home');
+            $this->addFlash('success', 'Client modifié avec succès!');
+
+            return $this->redirectToRoute('app_home'); // Rediriger vers la liste des clients
         }
 
         return $this->render('client/edit.html.twig', [
-            'formEdit' => $formEdit->createView(),
+            'form' => $form->createView(),
             'client' => $client,
         ]);
     }
@@ -109,21 +97,19 @@ class ClientController extends AbstractController
             $this->entityManager->flush();
             $this->addFlash('info', 'Client supprimé avec succès.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Une erreur est survenue lors de la suppression du client.');
+            $this->addFlash('error', 'Une erreur est survenue lors de la suppression du client : ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('app_home');
     }
 
-    
-    public function showDebts(Client $client)
+    #[Route('/client/debts/{id}', name: 'client.debts')]
+    public function showDebts(Client $client): Response
     {
-        $debts = $this->debtRepository->findBy(['client' => $client]);
+        $debts = $this->detteRepository->findBy(['client' => $client]);
         return $this->render('client/debts.html.twig', [
             'client' => $client,
             'debts' => $debts,
         ]);
     }
-
-
 }

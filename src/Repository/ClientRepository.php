@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Client;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -17,48 +17,33 @@ class ClientRepository extends ServiceEntityRepository
         parent::__construct($registry, Client::class);
     }
 
-    //    /**
-    //     * @return Client[] Returns an array of Client objects
-    //     */
-    // public function paginateClients(int $page, int $limit): Paginator
-    // {
-
-    //     $query = $this->createQueryBuilder('c')
-    //         ->setFirstResult(($page - 1) * $limit)
-    //         ->setMaxResults($limit)
-    //         ->orderBy('c.id', 'ASC')
-    //         ->getQuery();
-    //     return new Paginator($query);
-    // }
-
-
     public function paginateClients(int $page, int $limit, string $telephone = '*'): array
     {
         $qb = $this->createQueryBuilder('c');
-    
+
+        // Si un numéro de téléphone est fourni, ajoutez-le à la requête
         if ($telephone !== '*') {
             $qb->andWhere('c.telephone LIKE :telephone')
-                ->setParameter('telephone', '%' . $telephone . '%');
+               ->setParameter('telephone', '%' . $telephone . '%');
         }
-    
-        $query = $qb->getQuery();
-        $paginator = new Paginator($query);
-    
-        // Set current page and limit
-        $paginator->setPage($page);
-        $paginator->setLimit($limit);
-    
-        return $paginator->getResults();
+
+        // Pagination
+        return $qb->getQuery()
+                   ->setFirstResult(($page - 1) * $limit) // Début de la page
+                   ->setMaxResults($limit) // Limite des résultats
+                   ->getResult();
     }
 
+    public function findAllQuery(array $criteria = []): Query
+    {
+        $qb = $this->createQueryBuilder('c');
 
-    //    public function findOneBySomeField($value): ?Client
-    //    {
-    //        return $this->createQueryBuilder('c')
-    //            ->andWhere('c.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        // Ajoutez une condition de recherche si elle est fournie
+        if (!empty($criteria['search'])) {
+            $qb->andWhere('c.name LIKE :search OR c.telephone LIKE :search')
+               ->setParameter('search', '%' . $criteria['search'] . '%');
+        }
+
+        return $qb->getQuery();
+    }
 }

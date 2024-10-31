@@ -4,3 +4,16 @@ controllers:
         namespace : App\Controller
     type: attribute
 
+# config/routes.yaml
+google_login:
+    path: /login/google
+    controller: App\Controller\SecurityController::googleLogin
+
+# config/routes.yaml
+google_auth:
+    path: /auth/google
+    controller: App\Controller\SecurityController::googleAuth
+
+app_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
