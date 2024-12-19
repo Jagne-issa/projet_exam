@@ -35,7 +35,7 @@ class RegistrationController extends AbstractController
             $mailer->send($email);
 
             // Redirection vers la page de compte
-            return $this->redirectToRoute('app_account');
+            return $this->redirectToRoute('app_home');
         }
 
         return $this->render('security/register.html.twig', [

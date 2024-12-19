@@ -21,11 +21,14 @@ security:
         main:
             lazy: true
             provider: app_user_provider
+
             form_login:
-                login_path: app_login       # Chemin vers la page de connexion
-                check_path: app_login       # Chemin pour vérifier les identifiants
-                username_parameter: email   # Nom du champ pour l'email
-                password_parameter: password
+                login_path: app_login
+                check_path: app_login
+                username_parameter: _username
+                password_parameter: _password
+                # username_parameter: email
+                # password_parameter: password
             logout:
                 path: app_logout            # Chemin de déconnexion
                 target: app_login            # Redirection après 
